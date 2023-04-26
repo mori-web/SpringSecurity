@@ -2,25 +2,24 @@ package com.example.its.config;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 //カスタムログインページが表示される設定を指定する
 @EnableWebSecurity //@EnableWebSecurityは、このクラスはWEB関連のセキュリティいう指定
 @RequiredArgsConstructor
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-  private final UserDetailsService userDetailsService;
-  private final PasswordEncoder passwordEncoder;
+//  private final UserDetailsService userDetailsService;
+//  private final PasswordEncoder passwordEncoder;
 
   //自作ログインページを作成する
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
     //for h2-console
     http
         .authorizeRequests().antMatchers("/h2-console/**").permitAll()
@@ -37,14 +36,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .formLogin()                 //ログイン認証はフォームログインで指定
         .loginPage("/login");       //ログインページのパスは『/login』であるという指定
+
+    return http.build();
   }
 
   //ログイン処理時にUserDetailServiceを組み込ませて呼び出す処理
-  @Override
-  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-    //authオブジェクトのuserDetailsServiceメソッドで自作のuserDetailsServiceを登録する
-    auth.userDetailsService(userDetailsService)
-        //passwordEncoderはパスワードをハッシュ化する指示
-        .passwordEncoder(passwordEncoder);
+//  protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//    //authオブジェクトのuserDetailsServiceメソッドで自作のuserDetailsServiceを登録する
+//    auth.userDetailsService(userDetailsService)
+//        //passwordEncoderはパスワードをハッシュ化する指示
+//        .passwordEncoder(passwordEncoder);
+//  }
+
+  @Bean
+  public PasswordEncoder passwordEncoder(){
+    return new Pbkdf2PasswordEncoder();
   }
+
 }
